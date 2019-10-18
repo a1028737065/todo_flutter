@@ -1,8 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import './json/todo_item.dart';
+import 'package:flutter/services.dart';
+import './data_handle/item_handler.dart';
+import './page/main_page.dart';
+import './data_handle/model/item.dart';
 
-void main() => runApp(MyApp());
+void main(){
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  
+  ItemHandler _ii;
+  Map<String, dynamic> iMap = {
+    'id': 1,
+    'text':'text1',
+    'time': 'time1',
+    'alertTime': 'ATime1',
+    'alert': true,
+    'commet': 'commet1',
+    'category': 'category1'
+  };
+  Item item1 = Item.fromMap(iMap);
+  // ii.insert(Item.fromMap({
+  //   'text':'text2',
+  //   'time': 'time2',
+  //   'alertTime': 'ATime2',
+  //   'alert': false,
+  //   'commet': 'commet2',
+  //   'category': 'category2'
+  // }));
+  _ii.insert(item1);
+  _ii.getItem(1).then((v) => print(v.toMap()));
+
+  runApp(new MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -14,49 +42,6 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       home: MainPage(),
-    );
-  }
-}
-
-class MainPage extends StatefulWidget {
-  MainPage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MainPageState createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
-  // List<String> _sort = ['全部'];
-  // int _nowSort = 0;
-  List<Widget> _todoItemList = [
-    TodoItem(key: UniqueKey(), alertTime: 1570762512000,),//示例时间 2019-10-11 10:55:12
-    TodoItem(key: UniqueKey(), alertTime: 1570446277000,),//示例时间 2019-10-07 19:04:37
-  ];
-
-  void _newTODO() {
-    
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    ScreenUtil.instance = ScreenUtil(width: 750, height: 1334, allowFontScaling: true)..init(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('TODO'),
-      ),
-      body: Center(
-        child:ListView(
-          children: _todoItemList,
-        )
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _newTODO,
-        tooltip: 'New TODO',
-        child: Icon(Icons.add),
-      ),
     );
   }
 }
