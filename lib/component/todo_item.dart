@@ -1,42 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:todo/data_handle/model/item.dart';
 
 class TodoItem extends StatefulWidget {
   TodoItem({
     Key key, 
-    this.alertTime,
+    this.item,
   }) : super(key: key);
 
-  final int alertTime;//UTC+00 Timestamp
+  final Item item;//UTC+00 Timestamp
 
   @override
   _TodoItemState createState() => _TodoItemState();
 }
 
 class _TodoItemState extends State<TodoItem> {
-  String _alertText;
+  int _id;
+  String _text;
+  DateTime _time;
+  DateTime _alertTime;
+  bool _isAlert;
+  String _commet;
+  String _category;
 
   @override
   void initState() {
     super.initState();
+
+    var _m = widget.item.toMap();
+    _id = _m['id'];
+    _text = _m['text'];
+    _time = DateTime.parse(_m['time']);
+    _alertTime = DateTime.parse(_m['alert_time']);
+    _isAlert = _m['alert'] == 1 ? true : false;
+    _commet = _m['commet'];
+    _category = _m['category'];
   }
 
   String _timeText() {
     DateTime _nowTime = DateTime.now();
-    DateTime _time = DateTime.fromMillisecondsSinceEpoch(widget.alertTime).add(_nowTime.timeZoneOffset);
+    DateTime _time1 = _time.add(_nowTime.timeZoneOffset);
     String _temp = "";
 
-    if (_time.year == _nowTime.year + 1) {
+    if (_time1.year == _nowTime.year + 1) {
       _temp += "明年";
-    } else if (_time.year != _nowTime.year + 1) {
-      _temp += "${_time.year}年";
+    } else if (_time1.year != _nowTime.year + 1) {
+      _temp += "${_time1.year}年";
     }
 
-    _temp += "${_time.month}月";
+    _temp += "${_time1.month}月";
 
-    int _td = _time.day;
+    int _td = _time1.day;
     int _ntd = _nowTime.day;
-    if (_time.year == _nowTime.year) {
+    if (_time1.year == _nowTime.year) {
       if (_td == _ntd - 1) {
         _temp = "昨天";
       } else if (_td == _ntd) {
@@ -46,13 +62,13 @@ class _TodoItemState extends State<TodoItem> {
       } else if (_td == _ntd + 2) {
         _temp = "后天";
       } else {
-        _temp += "${_time.day}日";
+        _temp += "${_time1.day}日";
       }
     } else {
-      _temp += "${_time.day}日";
+      _temp += "${_time1.day}日";
     }
 
-    _temp += " ${_time.hour.toString().padLeft(2,"0")}:${_time.minute.toString().padLeft(2,"0")}";
+    _temp += " ${_time1.hour.toString().padLeft(2,"0")}:${_time1.minute.toString().padLeft(2,"0")}";
     return _temp;
   }
 
@@ -72,7 +88,7 @@ class _TodoItemState extends State<TodoItem> {
             style: TextStyle(fontSize: ScreenUtil.getInstance().setSp(36)),
           ),
           Text(
-            'alertText  $_alertText',
+            'alertText  $_text',
             style: TextStyle(fontSize: ScreenUtil.getInstance().setSp(28)),
           ),
         ],

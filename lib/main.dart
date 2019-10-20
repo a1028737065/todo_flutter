@@ -1,34 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import './data_handle/item_handler.dart';
 import './page/main_page.dart';
-import './data_handle/model/item.dart';
+import 'data_handle/item_handler.dart';
+import 'data_handle/model/item.dart';
 
 void main(){
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   
-  ItemHandler _ii;
-  Map<String, dynamic> iMap = {
-    'id': 1,
-    'text':'text1',
-    'time': 'time1',
-    'alertTime': 'ATime1',
-    'alert': true,
-    'commet': 'commet1',
-    'category': 'category1'
-  };
-  Item item1 = Item.fromMap(iMap);
-  // ii.insert(Item.fromMap({
-  //   'text':'text2',
-  //   'time': 'time2',
-  //   'alertTime': 'ATime2',
-  //   'alert': false,
-  //   'commet': 'commet2',
-  //   'category': 'category2'
-  // }));
-  _ii.insert(item1);
-  _ii.getItem(1).then((v) => print(v.toMap()));
-
+  var _itemHandler = new ItemHandler();
+  _itemHandler.deleteALL();
+  _itemHandler.insert(Item.fromMap({
+    'id': 9,
+    'text': '这是text1',
+    'time': '2019-10-19 04:12:00.000',
+    'alert_time': '2019-10-19 04:12:00.000',
+    'alert': 1,
+    'commet': '这是commet',
+    'category': '这是category',
+  }));
   runApp(new MyApp());
 }
 

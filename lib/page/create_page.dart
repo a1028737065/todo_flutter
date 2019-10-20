@@ -5,6 +5,13 @@ import 'package:todo/data_handle/item_handler.dart';
 import 'package:todo/data_handle/model/item.dart';
 
 class CreatePage extends StatefulWidget {
+  CreatePage({
+    Key key, 
+    this.addToMainPage,
+  }) : super(key: key);
+
+  final addToMainPage;
+
   @override
   _CreatePageState createState() => _CreatePageState();
 }
@@ -14,8 +21,7 @@ class _CreatePageState extends State<CreatePage> {
   DateTime _time, _alertTime;
   String _category; //初始化为分类第一个
   bool _isAlert = false;
-  String _text;
-  String _commet;
+  String _text, _commet;
 
   TextStyle _labelStyle = TextStyle(fontSize: ScreenUtil().setSp(30), color: Colors.blue[400], fontWeight: FontWeight.bold);
 
@@ -49,12 +55,22 @@ class _CreatePageState extends State<CreatePage> {
 
   //TODO: 完善
   void _create() {
-    var itemHandler = ItemHandler();
-    int _id;
-    String _dateTimeStr, _alertTimeStr;
+    String _timeStr = _time.subtract(_time.timeZoneOffset).toString();
+    String _alertTimeStr = _alertTime.subtract(_time.timeZoneOffset).toString();
+    Item _item = Item.fromMap({
+      'text': _text,
+      'time': _timeStr,
+      'alert_time': _alertTimeStr,
+      'alert': _isAlert == true ? 1 : 0,
+      'commet': _commet,
+      'category': _category,
+    });
 
-    _dateTimeStr = _time.toString();
-    _alertTimeStr = _alertTime.toString();
+    var _itemHandler = new ItemHandler();
+    _itemHandler.insert(_item).then((v) {
+      widget.addToMainPage(_item);
+      Navigator.pop(context);
+    });
   }
 
   @override
