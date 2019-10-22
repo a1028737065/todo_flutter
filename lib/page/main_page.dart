@@ -15,30 +15,43 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  List<Widget> _todoItemList = [];
+  List<TodoItem> _todoItemList = [];
+  Map<int, int> _idMap = {};
 
   void reloadList() {
     var _itemHandler = new ItemHandler();
     _itemHandler.getAll().then((v) {
-      List<Widget> _list = [];
-      v.forEach((_i) => _list.add(TodoItem(key: UniqueKey(), item: _i)));
-
-      setState(() {
-        _todoItemList = _list;
+      v.forEach((_i) {
+        _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO,));
       });
+      _updateKey();
+      setState(() {});
     });
   }
 
   void _newTODO() {
     Navigator.push(
       context,
-      new MaterialPageRoute(builder: (context) => new CreatePage(addToMainPage: _addToList,)),
+      new MaterialPageRoute(builder: (context) => new CreatePage(addToMainPage: _addTODO,)),
     );
   }
 
-  void _addToList(Item _i) {
-    _todoItemList.add(TodoItem(key: UniqueKey(), item: _i));
+  void _addTODO(Item _i) {
+    _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO,));
+    _updateKey();
     setState(() {});
+  }
+
+  void _deleteTODO(int _id) {
+    _todoItemList.removeAt(_idMap[_id]);
+    _updateKey();
+    setState(() {});
+  }
+
+  void _updateKey() {
+    for (int _i = 0; _i < _todoItemList.length; _i++) {
+      _idMap.putIfAbsent(_todoItemList[_i].id, () => _i);
+    }
   }
 
   @override
@@ -49,9 +62,8 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    ScreenUtil.instance =
-        ScreenUtil(width: 750, height: 1334, allowFontScaling: true)
-          ..init(context);
+    ScreenUtil.instance = ScreenUtil(width: 750, height: 1334, allowFontScaling: true)
+      ..init(context);
 
     return Scaffold(
       appBar: AppBar(

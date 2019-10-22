@@ -30,12 +30,13 @@ class ItemHandler {
   Future open() async {
     String databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'item.db');
+    print(path);
 
     var db = await openDatabase(path, version: 1,
         onCreate: (Database db, int newVersion) async {
       await db.execute('''
 CREATE TABLE $tableItem(
-  $columnId INTEGER PRIMARY KEY AUTO_INCREMENT, 
+  $columnId INTEGER PRIMARY KEY AUTOINCREMENT, 
   $columnText TEXT NOT NULL, 
   $columnTime TEXT NOT NULL, 
   $columnAlertTime TEXT, 

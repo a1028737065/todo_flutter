@@ -6,9 +6,12 @@ class TodoItem extends StatefulWidget {
   TodoItem({
     Key key, 
     this.item,
+    this.delete,
   }) : super(key: key);
 
-  final Item item;//UTC+00 Timestamp
+  final Item item;
+  final delete;
+  int get id => item.id;
 
   @override
   _TodoItemState createState() => _TodoItemState();
@@ -18,23 +21,17 @@ class _TodoItemState extends State<TodoItem> {
   int _id;
   String _text;
   DateTime _time;
-  DateTime _alertTime;
-  bool _isAlert;
-  String _commet;
   String _category;
 
   @override
   void initState() {
     super.initState();
 
-    var _m = widget.item.toMap();
-    _id = _m['id'];
-    _text = _m['text'];
-    _time = DateTime.parse(_m['time']);
-    _alertTime = DateTime.parse(_m['alert_time']);
-    _isAlert = _m['alert'] == 1 ? true : false;
-    _commet = _m['commet'];
-    _category = _m['category'];
+    var _data = widget.item.toMap();
+    _id = _data['id'];
+    _text = _data['text'];
+    _time = DateTime.parse(_data['time']);
+    _category = _data['category'];
   }
 
   String _timeText() {
@@ -74,25 +71,44 @@ class _TodoItemState extends State<TodoItem> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 5.0),
-      padding: const EdgeInsets.only(top: 12, bottom: 12, left: 20),
-      color: Colors.blue[100],
-      width: ScreenUtil.getInstance().setWidth(375),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            '${_timeText()}',
-            style: TextStyle(fontSize: ScreenUtil.getInstance().setSp(36)),
-          ),
-          Text(
-            'alertText  $_text',
-            style: TextStyle(fontSize: ScreenUtil.getInstance().setSp(28)),
-          ),
-        ],
-      ),  
+    DragDownDetails _pointer;
+    return GestureDetector(
+      child: ListTile(
+        title: Text(
+          '$_text',
+          style: TextStyle(fontSize: ScreenUtil().setSp(34)),
+        ),
+        subtitle: Text('${_timeText()}'),
+        contentPadding: EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(10), horizontal: 18),
+        onTap: () => {},
+        onLongPress: () {
+          showMenu(
+            context: context, 
+            position: RelativeRect.fromLTRB(_pointer.globalPosition.dx, _pointer.globalPosition.dy, _pointer.globalPosition.dx + 20, _pointer.globalPosition.dy + 20),
+            items: <PopupMenuEntry>[
+              PopupMenuItem(
+                value: 'delete',
+                child: const Text('删除'),
+              ),
+
+              // PopupMenuDivider(),
+              // CheckedPopupMenuItem(
+              //   value: '2',
+              //   child: Text('Item 2'),
+              //   checked:true,
+              // ),
+            ], 
+          ).then((a) {
+            if (a == 'delete') {
+              widget.delete(widget.id);
+            }
+          });
+        },
+      ),
+      onPanDown: (DragDownDetails e) {
+        _pointer = e;
+      },
     );
+    
   }
 }
