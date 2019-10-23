@@ -30,7 +30,6 @@ class ItemHandler {
   Future open() async {
     String databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'item.db');
-    print(path);
 
     var db = await openDatabase(path, version: 1,
         onCreate: (Database db, int newVersion) async {
@@ -89,9 +88,9 @@ CREATE TABLE $tableItem(
     return await _db.delete(tableItem, where: '$columnId = ?', whereArgs: [id]);
   }
 
-  Future<int> deleteALL() async {
+  Future deleteALL() async {
     var _db = await db;
-    return await _db.delete(tableItem, where: '1 = 1');
+    return await _db.execute('DELETE FROM $tableItem WHERE 1 = 1');
   }
 
   Future<int> update(Item item) async {
