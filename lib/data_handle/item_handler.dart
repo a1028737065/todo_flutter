@@ -14,6 +14,7 @@ class ItemHandler {
   final String columnTime = 'time';
   final String columnAlertTime = 'alert_time';
   final String columnAlert = 'alert';
+  final String columnStar = 'star';
   final String columnCommet = 'commet';
   final String columnCategory = 'category';
 
@@ -39,7 +40,8 @@ CREATE TABLE $tableItem(
   $columnText TEXT NOT NULL, 
   $columnTime TEXT NOT NULL, 
   $columnAlertTime TEXT, 
-  $columnAlert INTEGER, 
+  $columnAlert INTEGER NOT NULL, 
+  $columnStar INTEGER NOT NULL, 
   $columnCommet TEXT, 
   $columnCategory TEXT)
 ''');
@@ -63,12 +65,12 @@ CREATE TABLE $tableItem(
   Future<Item> getItem(int id) async {
     var _db = await db;
     List<Map> result = await _db.query(tableItem,
-        columns: [columnId, columnText, columnTime, columnAlertTime, columnAlert, columnCommet, columnCategory],
+        columns: [columnId, columnText, columnTime, columnAlertTime, columnAlert, columnStar, columnCommet, columnCategory],
         where: '$columnId = ?',
         whereArgs: [id]);
 
     if (result.length > 0) {
-      return Item.fromSql(result.first);
+      return Item.fromMap(result.first);
     }
 
     return null;

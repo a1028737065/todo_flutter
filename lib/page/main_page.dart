@@ -25,15 +25,14 @@ class _MainPageState extends State<MainPage> {
     _isLoading = true;
     _itemHandler.getAll().then((v) {
       v.forEach((_i) {
-        _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO,));
+        _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, updateStar: _updateStar,));
       });
       _updateKey();
-      setState(() {});
       _isLoading = false;
     });
   }
 
-  void _newTODO() {
+  void _toCreate() {
     Navigator.push(
       context,
       new MaterialPageRoute(builder: (context) => new CreatePage(addToMainPage: _addTODO,)),
@@ -41,16 +40,23 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _addTODO(Item _i) {
-    _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO,));
+    _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, updateStar: _updateStar,));
     _updateKey();
-    setState(() {});
   }
 
   void _deleteTODO(int _id) {
     _itemHandler.delete(_id);
     _todoItemList.removeAt(_idMap[_id]);
     _updateKey();
-    setState(() {});
+  }
+
+  void _updateStar(Item _i) {
+    _itemHandler.update(_i).then((a) {
+      _itemHandler.getItem(_i.id).then((_i) { 
+        _todoItemList[_idMap[_i.id]] = TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, updateStar: _updateStar,);
+        _updateKey();
+      });
+    });
   }
 
   void _updateKey() {
@@ -58,6 +64,7 @@ class _MainPageState extends State<MainPage> {
     for (int _i = 0; _i < _todoItemList.length; _i++) {
       _idMap.putIfAbsent(_todoItemList[_i].id, () => _i);
     }
+    setState(() {});
   }
   
   // final JPush jpush = new JPush();
@@ -113,7 +120,7 @@ class _MainPageState extends State<MainPage> {
           CircularProgressIndicator()
         ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _newTODO,
+        onPressed: _toCreate,
         tooltip: 'New TODO',
         child: Icon(Icons.add),
       ),

@@ -5,13 +5,15 @@ import 'package:todo/data_handle/model/item.dart';
 class TodoItem extends StatefulWidget {
   TodoItem({
     Key key, 
-    this.item,
-    this.delete,
+    this.item, 
+    this.delete, 
+    this.updateStar, 
   }) : super(key: key);
 
   final Item item;
   final delete;
-  int get id => item.id;
+  final updateStar;
+  get id => item.id;
 
   @override
   _TodoItemState createState() => _TodoItemState();
@@ -22,6 +24,7 @@ class _TodoItemState extends State<TodoItem> {
   String _text;
   DateTime _time;
   String _category;
+  bool _star = false;
 
   @override
   void initState() {
@@ -32,6 +35,7 @@ class _TodoItemState extends State<TodoItem> {
     _text = _data['text'];
     _time = DateTime.parse(_data['time']);
     _category = _data['category'];
+    _star = _data['star'] == 1;
   }
 
   String _timeText() {
@@ -69,6 +73,18 @@ class _TodoItemState extends State<TodoItem> {
     return _temp;
   }
 
+  Widget _popupMenuItem (IconData _i, String _s) {
+    return Row(
+      children: <Widget>[
+        Icon(_i),
+        Padding(
+          padding: EdgeInsets.only(left: 20),
+          child: Text('$_s'),
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     DragDownDetails _pointer;
@@ -79,6 +95,7 @@ class _TodoItemState extends State<TodoItem> {
           style: TextStyle(fontSize: ScreenUtil().setSp(34)),
         ),
         subtitle: Text('${_timeText()}'),
+        trailing: _star ? Icon(Icons.star) : null,
         contentPadding: EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(10), horizontal: 18),
         onTap: () => {},
         onLongPress: () {
@@ -87,20 +104,23 @@ class _TodoItemState extends State<TodoItem> {
             position: RelativeRect.fromLTRB(_pointer.globalPosition.dx, _pointer.globalPosition.dy, _pointer.globalPosition.dx + 20, _pointer.globalPosition.dy + 20),
             items: <PopupMenuEntry>[
               PopupMenuItem(
-                value: 'delete',
-                child: const Text('删除'),
+                value: 'star',
+                child: _star ? _popupMenuItem(Icons.star, '取消星标') : _popupMenuItem(Icons.star_border, '设置星标')
               ),
-
-              // PopupMenuDivider(),
-              // CheckedPopupMenuItem(
-              //   value: '2',
-              //   child: Text('Item 2'),
-              //   checked:true,
-              // ),
+              PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'delete',
+                child: _popupMenuItem(Icons.delete_outline, '删除')
+              ),
             ], 
           ).then((a) {
             if (a == 'delete') {
-              widget.delete(widget.id);
+              widget.delete(_id);
+            } else if (a == 'star') {
+              Map<String, dynamic> _m = widget.item.toMap();
+              _m['star'] = _star ? 0 : 1;
+              Item _i = Item.fromMap(_m);
+              widget.updateStar(_i);
             }
           });
         },

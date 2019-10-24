@@ -60,6 +60,7 @@ class _CreatePageState extends State<CreatePage> {
       'time': _timeStr,
       'alert_time': _alertTimeStr,
       'alert': _isAlert == true ? 1 : 0,
+      'star': 0,
       'commet': _commet,
       'category': _category,
     });
