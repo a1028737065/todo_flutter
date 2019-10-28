@@ -105,9 +105,13 @@ class _MainPageState extends State<MainPage> {
         child: !_isLoading ?
         (_todoItemList.isNotEmpty ? 
         ListView.builder(
-            itemCount: _todoItemList == null ? 0 : _todoItemList.length,
+            itemCount: _todoItemList == null ? 0 : _todoItemList.length * 2 - 1,
             itemBuilder: (BuildContext context,int index){
-              return _todoItemList[index];
+              if (index.isOdd) {
+                return Divider(height: 2);
+              } else {
+                return _todoItemList[index ~/ 2];
+              }   
             },
           ) : 
           Column(

@@ -120,10 +120,10 @@ class _TodoItemState extends State<TodoItem> {
         ),
         trailing: _star ? 
           Padding(
-            padding: EdgeInsets.only(right: ScreenUtil().setWidth(20)),
+            padding: EdgeInsets.only(right: ScreenUtil().setWidth(25)),
             child: Icon(Icons.star),
           ) : null,
-        contentPadding: EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(10), horizontal: 0),
+        contentPadding: EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(8), horizontal: 0),
         onTap: () => {},
         onLongPress: () {
           showMenu(
