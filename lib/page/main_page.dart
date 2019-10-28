@@ -4,7 +4,7 @@ import '../component/todo_item.dart';
 import '../data_handle/item_handler.dart';
 import '../data_handle/model/item.dart';
 import '../page/create_page.dart';
-import 'package:jpush_flutter/jpush_flutter.dart';
+// import 'package:jpush_flutter/jpush_flutter.dart';
 
 class MainPage extends StatefulWidget {
   MainPage({Key key, this.title}) : super(key: key);

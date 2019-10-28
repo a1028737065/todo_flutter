@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:todo/data_handle/item_handler.dart';
@@ -19,9 +20,9 @@ class CreatePage extends StatefulWidget {
 class _CreatePageState extends State<CreatePage> {
   TextEditingController _controller1, _controller2;
   DateTime _time, _alertTime;
-  String _category; //初始化为分类第一个
   bool _isAlert = false;
   String _text, _commet;
+  Color _selectedColor = Color(0xffffffff), _nowColor;
 
   //TODO:需优化为只传入t
   void _showTimePicker(int i, DateTime t) async {
@@ -62,7 +63,7 @@ class _CreatePageState extends State<CreatePage> {
       'alert': _isAlert == true ? 1 : 0,
       'star': 0,
       'commet': _commet,
-      'category': _category,
+      'color': _selectedColor.toString(),
     });
 
     var _itemHandler = new ItemHandler();
@@ -81,7 +82,7 @@ class _CreatePageState extends State<CreatePage> {
 
   Widget _label(String text, int top) {
     return Container(
-      padding: EdgeInsets.only(bottom: ScreenUtil().setHeight(10),right: ScreenUtil().setWidth(20), top: ScreenUtil().setHeight(top), left: ScreenUtil().setWidth(12)),
+      padding: EdgeInsets.only(bottom: ScreenUtil().setHeight(10),right: ScreenUtil().setWidth(20), top: ScreenUtil().setHeight(top), left: ScreenUtil().setWidth(24)),
       child: Text(
         '$text',
         style: TextStyle(fontSize: ScreenUtil().setSp(30), color: Colors.blue[400], fontWeight: FontWeight.bold),
@@ -105,146 +106,172 @@ class _CreatePageState extends State<CreatePage> {
         ],
       ),
       body: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.only(left: ScreenUtil().setWidth(20)),
-            child: Column(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _label('内容', 20),
+            Padding(
+              padding: EdgeInsets.only(left: ScreenUtil().setWidth(24)),
+              child: Container(
+                width: ScreenUtil().setWidth(710),
+                child: new TextField(
+                  controller: _controller1,
+                  decoration:  InputDecoration(
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.transparent)
+                    ),
+                    contentPadding: EdgeInsets.all(ScreenUtil().setSp(18)),
+                  ),
+                  minLines: 5,
+                  maxLines: 5,
+                  onChanged: (value) {
+                    this._text = value;
+                  },
+                  style: TextStyle(fontSize: ScreenUtil().setSp(30)),
+                ),
+              ),
+            ),
+
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                _label('内容', 20),
-                new Container(
-                  width: ScreenUtil().setWidth(710),
-                  child: new TextField(
-                    controller: _controller1,
-                    decoration:  InputDecoration(
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.transparent)
+                _label('事件时间', 50),
+                Padding(
+                  padding: EdgeInsets.only(left: ScreenUtil().setWidth(24)),
+                  child: Container(
+                    width: ScreenUtil().setWidth(380),
+                    child: OutlineButton(
+                      child: Text(
+                        '${_time.year}-${_time.month.toString().padLeft(2,'0')}-${_time.day.toString().padLeft(2,'0')} ${_time.hour.toString().padLeft(2,'0')}:${_time.minute.toString().padLeft(2,'0')}', 
+                        style: TextStyle(fontSize: ScreenUtil().setSp(27))
                       ),
-                      contentPadding: EdgeInsets.all(ScreenUtil().setSp(18)),
+                      onPressed: () => _showTimePicker(1, _time),
+                      borderSide: BorderSide(color: Colors.indigo[100], width: 2),
                     ),
-                    minLines: 5,
-                    maxLines: 5,
-                    onChanged: (value) {
-                      this._text = value;
-                    },
-                    style: TextStyle(fontSize: ScreenUtil().setSp(30)),
-                  ),
-                ),
-
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    _label('事件时间', 50),
-                    Container(
-                      width: ScreenUtil().setWidth(380),
-                      child: OutlineButton(
-                        child: Text(
-                          '${_time.year}-${_time.month.toString().padLeft(2,'0')}-${_time.day.toString().padLeft(2,'0')} ${_time.hour.toString().padLeft(2,'0')}:${_time.minute.toString().padLeft(2,'0')}', 
-                          style: TextStyle(fontSize: ScreenUtil().setSp(27))
-                        ),
-                        onPressed: () => _showTimePicker(1, _time),
-                        borderSide: BorderSide(color: Colors.indigo[100], width: 2),
-                      ),
-                    ),
-                  ],
-                ),
-
-                Row(
-                  children: <Widget>[
-                    _label('分类', 50),
-                    Container(
-                      child: new DropdownButton<String>(
-                        hint: Text(r'      选择一个分类   '),
-                        value: _category,
-                        onChanged: (String newValue) {
-                          setState(() {
-                            _category = newValue;
-                          });
-                        },
-                        items: <String>['One', 'Two', 'Fre', 'Four', 'Four1', 'Four2', 'Four3', 'Four4', 'Four5', 'Four7', 'Four62']//不能重复
-                          .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          })
-                          .toList(),
-                        iconSize: 30,
-                      ),
-                    ),
-                  ],
-                ),
-
-                new Padding(
-                  padding: EdgeInsets.only(top: ScreenUtil().setHeight(50), left: ScreenUtil().setHeight(12),),
-                  child: new Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      CheckboxListTile(
-                        title: Text('开启提醒'),
-                        value: _isAlert,
-                        activeColor: Colors.blue,
-                        onChanged: (bool value) {
-                          setState(() {
-                            _isAlert = value;
-                          });
-                        },
-                      ),
-                      Container(
-                        width: ScreenUtil().setWidth(750),
-                        child:Row(
-                          children: <Widget>[
-                            Container(
-                              width: ScreenUtil().setWidth(380),
-                              child: OutlineButton(
-                              child: Text(
-                                  '${_alertTime.year}-${_alertTime.month.toString().padLeft(2,'0')}-${_alertTime.day.toString().padLeft(2,'0')} ${_alertTime.hour.toString().padLeft(2,'0')}:${_alertTime.minute.toString().padLeft(2,'0')}', 
-                                  style: TextStyle(fontSize: ScreenUtil().setSp(27))
-                                ),
-                                onPressed: _isAlert?() => _showTimePicker(2, _alertTime):null,
-                                borderSide: BorderSide(color: Colors.indigo[100], width: 2),
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(left: ScreenUtil().setWidth(20)),
-                              child: FlatButton.icon(
-                                icon: Icon(Icons.sync),
-                                label: Text(
-                                  '设置为事件时间', 
-                                  style: TextStyle(fontSize: ScreenUtil().setSp(24))
-                                ),
-                                onPressed: _isAlert?() => _syncTime():null,
-                              ),
-                            ),
-                            
-                          ],
-                        )
-                      ),
-                    ],
-                  )
-                ),
-
-                _label('备注', 60),
-                new Container(
-                  width: ScreenUtil().setWidth(710),
-                  child: new TextField(
-                    controller: _controller2,
-                    decoration:  InputDecoration(
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.transparent)
-                      ),
-                      contentPadding: EdgeInsets.all(ScreenUtil().setSp(20)),
-                    ),
-                    maxLines: 1,
-                    onChanged: (value) {
-                      this._commet = value;
-                    },
-                    style: TextStyle(fontSize: ScreenUtil().setSp(30)),
-                    textInputAction: TextInputAction.next,
                   ),
                 ),
               ],
             ),
-          ),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                _label('颜色', 50),
+                ListTile(
+                  title: Text('选择'),
+                  trailing: Container(
+                    width: 28,
+                    child: CircleAvatar(
+                      backgroundColor: _selectedColor,
+                    ),
+                  ),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('选择标签颜色'),
+                          contentPadding: EdgeInsets.fromLTRB(10, 15, 10, 0),
+                          content: Container(
+                            height: ScreenUtil().setHeight(750),
+                            child: MaterialColorPicker(
+                              circleSize: ScreenUtil().setWidth(105),
+                              onColorChange: (Color color) {
+                                _nowColor = color;
+                              }, 
+                              selectedColor: _selectedColor
+                            ),
+                          ),
+                          actions: <Widget>[
+                            FlatButton(
+                              child: Text('确定'),
+                              onPressed: () {
+                                _selectedColor = _nowColor;
+                                setState(() {});
+                                Navigator.of(context).pop();
+                              },
+                            ), 
+                          ],
+                        );
+                      }
+                    );
+                  }
+                ),
+              ],
+            ),
+
+            new Padding(
+              padding: EdgeInsets.only(top: ScreenUtil().setHeight(20), left: ScreenUtil().setHeight(12),),
+              child: new Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  CheckboxListTile(
+                    title: Text('开启提醒'),
+                    value: _isAlert,
+                    activeColor: Colors.blue,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _isAlert = value;
+                      });
+                    },
+                  ),
+                  Container(
+                    width: ScreenUtil().setWidth(750),
+                    child:Row(
+                      children: <Widget>[
+                        Container(
+                          width: ScreenUtil().setWidth(380),
+                          child: OutlineButton(
+                          child: Text(
+                              '${_alertTime.year}-${_alertTime.month.toString().padLeft(2,'0')}-${_alertTime.day.toString().padLeft(2,'0')} ${_alertTime.hour.toString().padLeft(2,'0')}:${_alertTime.minute.toString().padLeft(2,'0')}', 
+                              style: TextStyle(fontSize: ScreenUtil().setSp(27))
+                            ),
+                            onPressed: _isAlert?() => _showTimePicker(2, _alertTime):null,
+                            borderSide: BorderSide(color: Colors.indigo[100], width: 2),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(left: ScreenUtil().setWidth(20)),
+                          child: FlatButton.icon(
+                            icon: Icon(Icons.sync),
+                            label: Text(
+                              '设置为事件时间', 
+                              style: TextStyle(fontSize: ScreenUtil().setSp(24))
+                            ),
+                            onPressed: _isAlert?() => _syncTime():null,
+                          ),
+                        ),
+                      ],
+                    )
+                  ),
+                ],
+              )
+            ),
+
+            _label('备注', 60),
+            Padding(
+              padding: EdgeInsets.only(left: ScreenUtil().setWidth(24)),
+              child: Container(
+                width: ScreenUtil().setWidth(710),
+                child: new TextField(
+                  controller: _controller2,
+                  decoration:  InputDecoration(
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.transparent)
+                    ),
+                    contentPadding: EdgeInsets.all(ScreenUtil().setSp(20)),
+                  ),
+                  maxLines: 1,
+                  onChanged: (value) {
+                    this._commet = value;
+                  },
+                  style: TextStyle(fontSize: ScreenUtil().setSp(30)),
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

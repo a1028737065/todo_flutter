@@ -16,7 +16,7 @@ class ItemHandler {
   final String columnAlert = 'alert';
   final String columnStar = 'star';
   final String columnCommet = 'commet';
-  final String columnCategory = 'category';
+  final String columnColor = 'color';
 
   ItemHandler.internal();
   Future<Database> get db async {
@@ -39,11 +39,11 @@ CREATE TABLE $tableItem(
   $columnId INTEGER PRIMARY KEY AUTOINCREMENT, 
   $columnText TEXT NOT NULL, 
   $columnTime TEXT NOT NULL, 
-  $columnAlertTime TEXT, 
+  $columnAlertTime TEXT NOT NULL, 
   $columnAlert INTEGER NOT NULL, 
   $columnStar INTEGER NOT NULL, 
   $columnCommet TEXT, 
-  $columnCategory TEXT)
+  $columnColor TEXT NOT NULL)
 ''');
     });
 
@@ -65,7 +65,7 @@ CREATE TABLE $tableItem(
   Future<Item> getItem(int id) async {
     var _db = await db;
     List<Map> result = await _db.query(tableItem,
-        columns: [columnId, columnText, columnTime, columnAlertTime, columnAlert, columnStar, columnCommet, columnCategory],
+        columns: [columnId, columnText, columnTime, columnAlertTime, columnAlert, columnStar, columnCommet, columnColor],
         where: '$columnId = ?',
         whereArgs: [id]);
 

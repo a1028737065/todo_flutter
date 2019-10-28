@@ -6,7 +6,7 @@ class Item {
   bool alert; //Map中该项为true ? 1 : 0
   bool star;
   String commet;
-  String category;
+  String color;
 
   Map<String, dynamic> toMap() {
     var map = <String, dynamic>{
@@ -16,7 +16,7 @@ class Item {
       'alert': alert == true ? 1 : 0,
       'star': star == true ? 1 : 0,
       'commet': commet,
-      'category': category,
+      'color': color,
     };
     if (id != null) {
       map['id'] = id;
@@ -34,6 +34,6 @@ class Item {
     alert = map['alert'] == 1;
     star = map['star'] == 1;
     commet = map['commet'];
-    category = map['category'];
+    color = map['color'];
   }
 }
