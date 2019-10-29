@@ -98,6 +98,7 @@ class _CreatePageState extends State<CreatePage> {
           icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        title: Text('新建'),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.save),

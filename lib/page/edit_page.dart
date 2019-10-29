@@ -114,6 +114,7 @@ class _EditPageState extends State<EditPage> {
           icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        title: Text('编辑'),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.save),

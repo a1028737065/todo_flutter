@@ -1,16 +1,30 @@
-# todo
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-A new Flutter project.
+- [Introduction](#introduction)
+- [Function](#function)
+- [Build](#build)
 
-## Getting Started
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-This project is a starting point for a Flutter application.
+## Introduction
+A simple todo app.
 
-A few resources to get you started if this is your first Flutter project:
+## Function
+- [x] create
+- [x] Retrieve
+- [x] Update
+- [x] Delete
+- [ ] Search
+- [ ] Alert
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+## Build
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+`Development`
+
+    flutter run
+
+`Release`
+
+    flutter build apk --release
