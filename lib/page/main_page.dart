@@ -25,7 +25,7 @@ class _MainPageState extends State<MainPage> {
     _isLoading = true;
     _itemHandler.getAll().then((v) {
       v.forEach((_i) {
-        _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, updateStar: _updateStar,));
+        _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update,));
       });
       _updateKey();
       _isLoading = false;
@@ -40,7 +40,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _addTODO(Item _i) {
-    _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, updateStar: _updateStar,));
+    _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update,));
     _updateKey();
   }
 
@@ -50,10 +50,10 @@ class _MainPageState extends State<MainPage> {
     _updateKey();
   }
 
-  void _updateStar(Item _i) {
+  void _update(Item _i) {
     _itemHandler.update(_i).then((a) {
       _itemHandler.getItem(_i.id).then((_i) { 
-        _todoItemList[_idMap[_i.id]] = TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, updateStar: _updateStar,);
+        _todoItemList[_idMap[_i.id]] = TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update,);
         _updateKey();
       });
     });

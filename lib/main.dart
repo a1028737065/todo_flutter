@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:todo/data_handle/item_handler.dart';
 import './page/main_page.dart';
 
 void main(){
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]); //锁定屏幕方向为竖屏，防止旋转屏幕导致页面布局出错
-
-  ItemHandler _i = new ItemHandler();
-  _i.deleteALL();
   runApp(new MyApp());
 }
 

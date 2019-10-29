@@ -5,26 +5,28 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:todo/data_handle/item_handler.dart';
 import 'package:todo/data_handle/model/item.dart';
 
-class CreatePage extends StatefulWidget {
-  CreatePage({
+class EditPage extends StatefulWidget {
+  EditPage({
     Key key, 
-    this.addToMainPage,
+    this.item,
+    this.update
   }) : super(key: key);
 
-  final addToMainPage;
+  final Item item;
+  final update;
 
   @override
-  _CreatePageState createState() => _CreatePageState();
+  _EditPageState createState() => _EditPageState();
 }
 
-class _CreatePageState extends State<CreatePage> {
+class _EditPageState extends State<EditPage> {
+  int _id, _star;
   TextEditingController _controller1, _controller2;
   DateTime _time, _alertTime;
   bool _isAlert = false;
   String _text, _commet;
-  Color _selectedColor = Color(0xffffffff), _nowColor;
+  Color _selectedColor, _nowColor;
 
-  //TODO:需优化为只传入t
   void _showTimePicker(int i, DateTime t) async {
     DatePicker.showDateTimePicker(
       context,
@@ -52,32 +54,46 @@ class _CreatePageState extends State<CreatePage> {
     });
   }
 
-  //TODO: 完善
-  void _create() {
-    String _timeStr = _time.subtract(_time.timeZoneOffset).toString();
-    String _alertTimeStr = _alertTime.subtract(_time.timeZoneOffset).toString();
-    Item _item = Item.fromMap({
-      'text': _text,
+  void _save() {
+    DateTime _nowTime = DateTime.now();
+    String _timeStr = _time.subtract(_nowTime.timeZoneOffset).toString();
+    String _alertTimeStr = _alertTime.subtract(_nowTime.timeZoneOffset).toString();
+    Map<String, dynamic> _m = {
+      'id': _id,
+      'text': _text == null ? widget.item.toMap()['text'] : _text,
       'time': _timeStr,
       'alert_time': _alertTimeStr,
       'alert': _isAlert == true ? 1 : 0,
-      'star': 0,
-      'commet': _commet == null ? '' : _commet,
+      'star': _star,
+      'commet': _commet == null ? widget.item.toMap()['commet'] : _commet,
       'color': _selectedColor.toString(),
-    });
+    };
+    Item _item = Item.fromMap(_m);
 
     var _itemHandler = new ItemHandler();
-    _itemHandler.insert(_item).then((v) {
-      widget.addToMainPage(_item);
+    _itemHandler.update(_item).then((v) {
+      widget.update(_item);
       Navigator.pop(context);
     });
   }
 
+  
+
   @override
   void initState() {
     super.initState();
-    _time = DateTime.now();
-    _alertTime = _time;
+    
+    Map<String, dynamic> _data = widget.item.toMap();
+    _controller1 = TextEditingController.fromValue(TextEditingValue(text: _data['text']));
+    _controller2 = TextEditingController.fromValue(TextEditingValue(text: _data['commet'] == null ? '' : _data['commet']));
+    _time = DateTime.parse(_data['time']).add(DateTime.now().timeZoneOffset);
+    _alertTime = DateTime.parse(_data['alert_time']).add(DateTime.now().timeZoneOffset);
+    _isAlert = _data['alert'] == 1;
+    _commet = _data['commet'];
+    _selectedColor = Color(int.parse(_data['color'].split('(0x')[1].split(')')[0], radix: 16));
+    _nowColor = _selectedColor;
+    _id = _data['id'];
+    _star = _data['star'];
   }
 
   Widget _label(String text, int top) {
@@ -101,7 +117,7 @@ class _CreatePageState extends State<CreatePage> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.save),
-            onPressed: _create,
+            onPressed: _save,
           )
         ],
       ),

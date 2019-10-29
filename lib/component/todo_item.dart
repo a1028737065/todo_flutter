@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:todo/data_handle/model/item.dart';
+import 'package:todo/page/edit_page.dart';
 
 class TodoItem extends StatefulWidget {
   TodoItem({
     Key key, 
     this.item, 
     this.delete, 
-    this.updateStar, 
+    this.update, 
   }) : super(key: key);
 
   final Item item;
   final delete;
-  final updateStar;
+  final update;
   get id => item.id;
 
   @override
@@ -21,7 +22,7 @@ class TodoItem extends StatefulWidget {
 
 class _TodoItemState extends State<TodoItem> {
   int _id;
-  String _text;
+  String _text, _commet;
   DateTime _time, _alertTime;
   Color _color;
   bool _star = false, _alert = false;
@@ -33,32 +34,29 @@ class _TodoItemState extends State<TodoItem> {
     var _data = widget.item.toMap();
     _id = _data['id'];
     _text = _data['text'];
-    _time = DateTime.parse(_data['time']);
-    _alertTime = DateTime.parse(_data['alert_time']);
+    _time = DateTime.parse(_data['time']).add(DateTime.now().timeZoneOffset);
+    _alertTime = DateTime.parse(_data['alert_time']).add(DateTime.now().timeZoneOffset);
     _alert = _data['alert'] == 1;
     _color = Color(int.parse(_data['color'].split('(0x')[1].split(')')[0], radix: 16));
     _star = _data['star'] == 1;
-    setState(() {
-      
-    });
+    _commet = _data['commet'];
   }
 
   String _timeText(DateTime _t) {
     DateTime _nowTime = DateTime.now();
-    DateTime _time = _t.add(_nowTime.timeZoneOffset);
     String _temp = "";
 
-    if (_time.year == _nowTime.year + 1) {
+    if (_t.year == _nowTime.year + 1) {
       _temp += "明年";
-    } else if (_time.year != _nowTime.year + 1) {
-      _temp += "${_time.year}年";
+    } else if (_t.year != _nowTime.year + 1) {
+      _temp += "${_t.year}年";
     }
 
-    _temp += "${_time.month}月";
+    _temp += "${_t.month}月";
 
-    int _td = _time.day;
+    int _td = _t.day;
     int _ntd = _nowTime.day;
-    if (_time.year == _nowTime.year) {
+    if (_t.year == _nowTime.year) {
       if (_td == _ntd - 1) {
         _temp = "昨天";
       } else if (_td == _ntd) {
@@ -68,14 +66,29 @@ class _TodoItemState extends State<TodoItem> {
       } else if (_td == _ntd + 2) {
         _temp = "后天";
       } else {
-        _temp += "${_time.day}日";
+        _temp += "${_t.day}日";
       }
     } else {
-      _temp += "${_time.day}日";
+      _temp += "${_t.day}日";
     }
 
-    _temp += " ${_time.hour.toString().padLeft(2,"0")}:${_time.minute.toString().padLeft(2,"0")}";
+    _temp += " ${_t.hour.toString().padLeft(2,"0")}:${_t.minute.toString().padLeft(2,"0")}";
     return _temp;
+  }
+
+  Widget _label(String _t) {
+    return Padding(
+      padding: EdgeInsets.only(right: 25),
+      child: Text(
+          _t,
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue,)
+        ),
+      )
+    ;
+  }
+
+  Widget _space({int i = 45}) {
+    return Padding(padding: EdgeInsets.only(top: ScreenUtil().setHeight(i)),);
   }
 
   Widget _popupMenuItem (IconData _i, String _s) {
@@ -83,7 +96,7 @@ class _TodoItemState extends State<TodoItem> {
       children: <Widget>[
         Icon(_i),
         Padding(
-          padding: EdgeInsets.only(left: 20),
+          padding: EdgeInsets.only(left: 30),
           child: Text('$_s'),
         )
       ],
@@ -95,7 +108,6 @@ class _TodoItemState extends State<TodoItem> {
     DragDownDetails _pointer;
     return GestureDetector(
       child: ListTile(
-        key: UniqueKey(),
         title: Text(
           '$_text',
           style: TextStyle(fontSize: ScreenUtil().setSp(34)),
@@ -124,7 +136,72 @@ class _TodoItemState extends State<TodoItem> {
             child: Icon(Icons.star),
           ) : null,
         contentPadding: EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(8), horizontal: 0),
-        onTap: () => {},
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Row(
+                  children: <Widget>[
+                    Text('详细'),
+                    Container(
+                      margin: EdgeInsets.only(left: 20),
+                      width: 22,
+                      child: CircleAvatar(
+                        backgroundColor: _color,
+                      ),
+                    ),
+                  ],
+                ),
+                content:SingleChildScrollView(
+                  child:  Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    _label('内容'),
+                    _space(i: 15),
+                    Text(
+                      '$_text ',
+                      softWrap: true,
+                    ),
+                    _space(),
+                    Row(
+                      children: <Widget>[
+                        _label('时间'),
+                        Text(
+                          '${_time.year}-${_time.month.toString().padLeft(2,'0')}-${_time.day.toString().padLeft(2,'0')} ${_time.hour.toString().padLeft(2,'0')}:${_time.minute.toString().padLeft(2,'0')}',
+                        )
+                      ],
+                    ),
+                    _space(),
+                    Row(
+                      children: <Widget>[
+                        _label('提醒'),
+                        _alert ? 
+                        Text('${_alertTime.year}-${_alertTime.month.toString().padLeft(2,'0')}-${_alertTime.day.toString().padLeft(2,'0')} ${_alertTime.hour.toString().padLeft(2,'0')}:${_alertTime.minute.toString().padLeft(2,'0')}') : 
+                        Text('无', style: TextStyle(color: Colors.grey))
+                      ],
+                    ),
+                    _space(),
+                    _label('备注'),
+                    _space(i: 15),
+                    _commet != '' ? 
+                    Text('$_commet') : 
+                    Text('没有备注', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+                ),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('修改'),
+                    onPressed: () {
+                      Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new EditPage(item: widget.item, update: widget.update,)),);
+                    },
+                  )
+                ],
+              );
+            }
+          );
+        },
         onLongPress: () {
           showMenu(
             context: context, 
@@ -147,7 +224,7 @@ class _TodoItemState extends State<TodoItem> {
               Map<String, dynamic> _m = widget.item.toMap();
               _m['star'] = _star ? 0 : 1;
               Item _i = Item.fromMap(_m);
-              widget.updateStar(_i);
+              widget.update(_i);
             }
           });
         },
