@@ -1,10 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../component/todo_item.dart';
 import '../data_handle/item_handler.dart';
 import '../data_handle/model/item.dart';
 import '../page/create_page.dart';
-// import 'package:jpush_flutter/jpush_flutter.dart';
 
 class MainPage extends StatefulWidget {
   MainPage({Key key, this.title}) : super(key: key);
@@ -20,12 +21,13 @@ class _MainPageState extends State<MainPage> {
   Map<int, int> _idMap = {};
   bool _isLoading = true;
   var _itemHandler = new ItemHandler();
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
 
   void reloadList() {
     _isLoading = true;
     _itemHandler.getAll().then((v) {
       v.forEach((_i) {
-        _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update,));
+        _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update, notificationsPlugin: flutterLocalNotificationsPlugin,));
       });
       _updateKey();
       _isLoading = false;
@@ -40,7 +42,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _addTODO(Item _i) {
-    _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update,));
+    _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update, notificationsPlugin: flutterLocalNotificationsPlugin,));
     _updateKey();
   }
 
@@ -53,7 +55,7 @@ class _MainPageState extends State<MainPage> {
   void _update(Item _i) {
     _itemHandler.update(_i).then((a) {
       _itemHandler.getItem(_i.id).then((_i) { 
-        _todoItemList[_idMap[_i.id]] = TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update,);
+        _todoItemList[_idMap[_i.id]] = TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update, notificationsPlugin: flutterLocalNotificationsPlugin,);
         _updateKey();
       });
     });
@@ -66,25 +68,37 @@ class _MainPageState extends State<MainPage> {
     }
     setState(() {});
   }
+
+  Future onSelectNotification(String payload) async {
+    if (payload != null) {
+      debugPrint('notification payload: ' + payload);
+    }
+    // await Navigator.push(
+    //   context,
+    //   new MaterialPageRoute(builder: (context) => new SecondScreen(payload)),
+    // );
+  }
+  //IOS only
+  Future<void> onDidReceiveLocalNotification(
+      int id, String title, String body, String payload) async {
+        //Sample on https://github.com/MaikuB/flutter_local_notifications
+  }
+
   
-  // final JPush jpush = new JPush();
   @override
   void initState() {
     super.initState();
     reloadList();
-    
-    // var fireDate = DateTime.fromMillisecondsSinceEpoch(DateTime.now().millisecondsSinceEpoch + 3000);
-    // var localNotification = LocalNotification(
-    //   id: 234,
-    //   title: 'notification title',
-    //   buildId: 1,
-    //   content: 'notification content',
-    //   fireTime: fireDate,
-    //   subtitle: 'notification subtitle', // 该参数只有在 iOS 有效
-    //   badge: 5, // 该参数只有在 iOS 有效
-    //   extra: {"fa": "0"} // 设置 extras ，extras 需要是 Map<String, String>
-    //   );
-    // jpush.sendLocalNotification(localNotification).then((res) {});
+
+    var initializationSettingsAndroid =
+        new AndroidInitializationSettings('app_icon');
+    var initializationSettingsIOS = new IOSInitializationSettings(
+        onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+    var initializationSettings = new InitializationSettings(
+        initializationSettingsAndroid, initializationSettingsIOS);
+    flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: onSelectNotification);
+        
   }
 
   var tipsStyle  = TextStyle(
@@ -96,7 +110,6 @@ class _MainPageState extends State<MainPage> {
     ScreenUtil.instance = ScreenUtil(width: 750, height: 1334, allowFontScaling: true)
       ..init(context);
 
-    
     return Scaffold(
       appBar: AppBar(
         title: Text('TODO'),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:todo/data_handle/model/item.dart';
 import 'package:todo/page/edit_page.dart';
@@ -9,11 +10,13 @@ class TodoItem extends StatefulWidget {
     this.item, 
     this.delete, 
     this.update, 
+    this.notificationsPlugin,
   }) : super(key: key);
 
   final Item item;
   final delete;
   final update;
+  final FlutterLocalNotificationsPlugin notificationsPlugin;
   get id => item.id;
 
   @override
@@ -26,6 +29,32 @@ class _TodoItemState extends State<TodoItem> {
   DateTime _time, _alertTime;
   Color _color;
   bool _star = false, _alert = false;
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin; 
+
+  createNoti() async {
+    var scheduledNotificationDateTime = _alertTime;
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      '1', '提醒', '在设定的时间提醒您',
+      importance: Importance.Max, priority: Priority.High, ticker: 'to do alert');
+    var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+    var platformChannelSpecifics = NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.schedule(
+        _id,
+        'TODO提醒：$_text',
+        '备注：${_commet == '' ? '无' : _commet}',
+        scheduledNotificationDateTime,
+        platformChannelSpecifics);
+  }
+
+  cancelNoti() async {
+    flutterLocalNotificationsPlugin.pendingNotificationRequests().then((v) async {
+      if (v.isNotEmpty) {
+        await flutterLocalNotificationsPlugin.cancel(_id);
+      }
+    });
+    
+  }
 
   @override
   void initState() {
@@ -40,6 +69,11 @@ class _TodoItemState extends State<TodoItem> {
     _color = Color(int.parse(_data['color'].split('(0x')[1].split(')')[0], radix: 16));
     _star = _data['star'] == 1;
     _commet = _data['commet'];
+
+   
+    flutterLocalNotificationsPlugin = widget.notificationsPlugin;
+    _alert ? createNoti() : cancelNoti();
+    
   }
 
   String _timeText(DateTime _t) {
