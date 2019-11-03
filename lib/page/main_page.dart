@@ -16,18 +16,20 @@ class MainPage extends StatefulWidget {
   _MainPageState createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends State<MainPage> with AutomaticKeepAliveClientMixin<MainPage> {
   List<TodoItem> _todoItemList = [];
   Map<int, int> _idMap = {};
   bool _isLoading = true;
   var _itemHandler = new ItemHandler();
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+  ScrollController _listViewController = new ScrollController();
+
+  Widget _todoItem(Item _i) => TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update, notificationsPlugin: flutterLocalNotificationsPlugin,);
 
   void reloadList() {
-    _isLoading = true;
     _itemHandler.getAll().then((v) {
       v.forEach((_i) {
-        _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update, notificationsPlugin: flutterLocalNotificationsPlugin,));
+        _todoItemList.insert(0, _todoItem(_i));
       });
       _updateKey();
       _isLoading = false;
@@ -42,8 +44,15 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _addTODO(Item _i) {
-    _todoItemList.add(TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update, notificationsPlugin: flutterLocalNotificationsPlugin,));
-    _updateKey();
+    Future.delayed(Duration(milliseconds: 250), () {
+      _listViewController.animateTo(0.0,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.ease
+      ).then((v) {
+        _todoItemList.insert(0, _todoItem(_i));
+        _updateKey();
+      });
+    });
   }
 
   void _deleteTODO(int _id) {
@@ -53,10 +62,12 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _update(Item _i) {
-    _itemHandler.update(_i).then((a) {
-      _itemHandler.getItem(_i.id).then((_i) { 
-        _todoItemList[_idMap[_i.id]] = TodoItem(key: UniqueKey(), item: _i, delete: _deleteTODO, update: _update, notificationsPlugin: flutterLocalNotificationsPlugin,);
-        _updateKey();
+    Future.delayed(Duration(milliseconds: 200), () {
+      _itemHandler.update(_i).then((a) {
+        _itemHandler.getItem(_i.id).then((_i) { 
+          _todoItemList[_idMap[_i.id]] = _todoItem(_i);
+          _updateKey();
+        });
       });
     });
   }
@@ -84,7 +95,6 @@ class _MainPageState extends State<MainPage> {
         //Sample on https://github.com/MaikuB/flutter_local_notifications
   }
 
-  
   @override
   void initState() {
     super.initState();
@@ -97,8 +107,7 @@ class _MainPageState extends State<MainPage> {
     var initializationSettings = new InitializationSettings(
         initializationSettingsAndroid, initializationSettingsIOS);
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: onSelectNotification);
-        
+        onSelectNotification: onSelectNotification);   
   }
 
   var tipsStyle  = TextStyle(
@@ -107,35 +116,51 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     ScreenUtil.instance = ScreenUtil(width: 750, height: 1334, allowFontScaling: true)
       ..init(context);
+    const Widget _divider = Divider(height: 2);
+    DateTime _lastPressedAt;
 
     return Scaffold(
       appBar: AppBar(
         title: Text('TODO'),
       ),
-      body: Center(
-        child: !_isLoading ?
-        (_todoItemList.isNotEmpty ? 
-        ListView.builder(
-            itemCount: _todoItemList == null ? 0 : _todoItemList.length * 2 - 1,
-            itemBuilder: (BuildContext context,int index){
-              if (index.isOdd) {
-                return Divider(height: 2);
-              } else {
-                return _todoItemList[index ~/ 2];
-              }   
-            },
-          ) : 
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text('列表里还没有 TODO 哦', style: tipsStyle,),
-              Text('点击右下角的加号来新增一个吧', style: tipsStyle,),
-            ],
-          )) : 
-          CircularProgressIndicator()
+      body: Builder(
+        builder: (context) => WillPopScope(
+          child: Center(
+            child: !_isLoading ?
+              (_todoItemList.isNotEmpty ? 
+              ListView.separated( 
+                controller: _listViewController,
+                itemCount: _todoItemList == null ? 0 : _todoItemList.length,
+                itemBuilder: (BuildContext context,int index){
+                  return _todoItemList[index];
+                },
+                separatorBuilder: (BuildContext context, int index) {
+                  return _divider;
+                },
+              ) : 
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text('列表里还没有 TODO 哦', style: tipsStyle,),
+                  Text('点击右下角的加号来新增一个吧', style: tipsStyle,),
+                ],
+              )) : 
+              CircularProgressIndicator()
+            ),
+          onWillPop: () async {
+            if (_lastPressedAt == null || DateTime.now().difference(_lastPressedAt) > Duration(milliseconds: 1500)) {
+              _lastPressedAt = DateTime.now();
+              Scaffold.of(context).showSnackBar(SnackBar(content: Text("再点一次退出！"), duration: Duration(milliseconds: 1500),));
+              return false;
+            }
+            return true;
+          }
         ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _toCreate,
         tooltip: 'New TODO',
@@ -143,4 +168,14 @@ class _MainPageState extends State<MainPage> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _listViewController.dispose();
+    super.dispose();
+  }
+
+  @override
+  // keep widget alive
+  bool get wantKeepAlive => true;
 }

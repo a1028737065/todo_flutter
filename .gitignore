@@ -9,12 +9,15 @@
 .history
 .svn/
 dont know.md
+.czrc
+package-lock.json
 
 # IntelliJ related
 *.iml
 *.ipr
 *.iws
 .idea/
+.node_modules/
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
@@ -72,3 +75,5 @@ dont know.md
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+node_modules
+package.json
