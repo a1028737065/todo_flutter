@@ -7,7 +7,7 @@ import 'package:todo/data_handle/model/item.dart';
 
 class CreatePage extends StatefulWidget {
   CreatePage({
-    Key key, 
+    Key key,
     this.addToMainPage,
   }) : super(key: key);
 
@@ -40,8 +40,8 @@ class _CreatePageState extends State<CreatePage> {
               break;
           }
         });
-      }, 
-      currentTime: t, 
+      },
+      currentTime: t,
       locale: LocaleType.zh,
     );
   }
@@ -82,10 +82,17 @@ class _CreatePageState extends State<CreatePage> {
 
   Widget _label(String text, int top) {
     return Container(
-      padding: EdgeInsets.only(bottom: ScreenUtil().setHeight(10),right: ScreenUtil().setWidth(20), top: ScreenUtil().setHeight(top), left: ScreenUtil().setWidth(24)),
+      padding: EdgeInsets.only(
+          bottom: ScreenUtil().setHeight(10),
+          right: ScreenUtil().setWidth(20),
+          top: ScreenUtil().setHeight(top),
+          left: ScreenUtil().setWidth(24)),
       child: Text(
         '$text',
-        style: TextStyle(fontSize: ScreenUtil().setSp(30), color: Colors.blue[400], fontWeight: FontWeight.bold),
+        style: TextStyle(
+            fontSize: ScreenUtil().setSp(30),
+            color: Colors.blue[400],
+            fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -120,11 +127,10 @@ class _CreatePageState extends State<CreatePage> {
                   width: ScreenUtil().setWidth(710),
                   child: new TextField(
                     controller: _controller1,
-                    decoration:  InputDecoration(
+                    decoration: InputDecoration(
                       errorText: _text == '' ? '内容不能为空哦' : null,
                       border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.transparent)
-                      ),
+                          borderSide: BorderSide(color: Colors.transparent)),
                       contentPadding: EdgeInsets.all(ScreenUtil().setSp(18)),
                     ),
                     autofocus: true,
@@ -148,7 +154,6 @@ class _CreatePageState extends State<CreatePage> {
                   ),
                 ),
               ),
-
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -159,112 +164,112 @@ class _CreatePageState extends State<CreatePage> {
                       width: ScreenUtil().setWidth(380),
                       child: OutlineButton(
                         child: Text(
-                          '${_time.year}-${_time.month.toString().padLeft(2,'0')}-${_time.day.toString().padLeft(2,'0')} ${_time.hour.toString().padLeft(2,'0')}:${_time.minute.toString().padLeft(2,'0')}', 
-                          style: TextStyle(fontSize: ScreenUtil().setSp(27))
-                        ),
+                            '${_time.year}-${_time.month.toString().padLeft(2, '0')}-${_time.day.toString().padLeft(2, '0')} ${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}',
+                            style: TextStyle(fontSize: ScreenUtil().setSp(27))),
                         onPressed: () => _showTimePicker(1, _time),
-                        borderSide: BorderSide(color: Colors.indigo[100], width: 2),
+                        borderSide:
+                            BorderSide(color: Colors.indigo[100], width: 2),
                       ),
                     ),
                   ),
                 ],
               ),
-
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   _label('颜色', 50),
                   ListTile(
-                    title: Text('选择'),
-                    trailing: Container(
-                      width: 28,
-                      child: CircleAvatar(
-                        backgroundColor: _selectedColor,
+                      title: Text('选择'),
+                      trailing: Container(
+                        width: 28,
+                        child: CircleAvatar(
+                          backgroundColor: _selectedColor,
+                        ),
                       ),
-                    ),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('选择标签颜色'),
-                            contentPadding: EdgeInsets.fromLTRB(10, 15, 10, 0),
-                            content: Container(
-                              height: ScreenUtil().setHeight(750),
-                              child: MaterialColorPicker(
-                                circleSize: ScreenUtil().setWidth(105),
-                                onColorChange: (Color color) {
-                                  _nowColor = color;
-                                }, 
-                                selectedColor: _selectedColor
-                              ),
-                            ),
-                            actions: <Widget>[
-                              FlatButton(
-                                child: Text('确定'),
-                                onPressed: () {
-                                  _selectedColor = _nowColor;
-                                  setState(() {});
-                                  Navigator.of(context).pop();
-                                },
-                              ), 
-                            ],
-                          );
-                        }
-                      );
-                    }
-                  ),
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('选择标签颜色'),
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(10, 15, 10, 0),
+                                content: Container(
+                                  height: ScreenUtil().setHeight(750),
+                                  child: MaterialColorPicker(
+                                      circleSize: ScreenUtil().setWidth(105),
+                                      onColorChange: (Color color) {
+                                        _nowColor = color;
+                                      },
+                                      selectedColor: _selectedColor),
+                                ),
+                                actions: <Widget>[
+                                  FlatButton(
+                                    child: Text('确定'),
+                                    onPressed: () {
+                                      _selectedColor = _nowColor;
+                                      setState(() {});
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            });
+                      }),
                 ],
               ),
-
               new Padding(
-                padding: EdgeInsets.only(top: ScreenUtil().setHeight(20), left: ScreenUtil().setHeight(12),),
-                child: new Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    CheckboxListTile(
-                      title: Text('开启提醒'),
-                      value: _isAlert,
-                      activeColor: Colors.blue,
-                      onChanged: (bool value) {
-                        setState(() {
-                          _isAlert = value;
-                        });
-                      },
-                    ),
-                    Container(
-                      width: ScreenUtil().setWidth(750),
-                      child:Row(
-                        children: <Widget>[
-                          Container(
-                            width: ScreenUtil().setWidth(380),
-                            child: OutlineButton(
-                            child: Text(
-                                '${_alertTime.year}-${_alertTime.month.toString().padLeft(2,'0')}-${_alertTime.day.toString().padLeft(2,'0')} ${_alertTime.hour.toString().padLeft(2,'0')}:${_alertTime.minute.toString().padLeft(2,'0')}', 
-                                style: TextStyle(fontSize: ScreenUtil().setSp(27))
+                  padding: EdgeInsets.only(
+                    top: ScreenUtil().setHeight(20),
+                    left: ScreenUtil().setHeight(12),
+                  ),
+                  child: new Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      CheckboxListTile(
+                        title: Text('开启提醒'),
+                        value: _isAlert,
+                        activeColor: Colors.blue,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _isAlert = value;
+                          });
+                        },
+                      ),
+                      Container(
+                          width: ScreenUtil().setWidth(750),
+                          child: Row(
+                            children: <Widget>[
+                              Container(
+                                width: ScreenUtil().setWidth(380),
+                                child: OutlineButton(
+                                  child: Text(
+                                      '${_alertTime.year}-${_alertTime.month.toString().padLeft(2, '0')}-${_alertTime.day.toString().padLeft(2, '0')} ${_alertTime.hour.toString().padLeft(2, '0')}:${_alertTime.minute.toString().padLeft(2, '0')}',
+                                      style: TextStyle(
+                                          fontSize: ScreenUtil().setSp(27))),
+                                  onPressed: _isAlert
+                                      ? () => _showTimePicker(2, _alertTime)
+                                      : null,
+                                  borderSide: BorderSide(
+                                      color: Colors.indigo[100], width: 2),
+                                ),
                               ),
-                              onPressed: _isAlert?() => _showTimePicker(2, _alertTime):null,
-                              borderSide: BorderSide(color: Colors.indigo[100], width: 2),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: ScreenUtil().setWidth(20)),
-                            child: FlatButton.icon(
-                              icon: Icon(Icons.sync),
-                              label: Text(
-                                '设置为事件时间', 
-                                style: TextStyle(fontSize: ScreenUtil().setSp(24))
+                              Padding(
+                                padding: EdgeInsets.only(
+                                    left: ScreenUtil().setWidth(20)),
+                                child: FlatButton.icon(
+                                  icon: Icon(Icons.sync),
+                                  label: Text('设置为事件时间',
+                                      style: TextStyle(
+                                          fontSize: ScreenUtil().setSp(24))),
+                                  onPressed:
+                                      _isAlert ? () => _syncTime() : null,
+                                ),
                               ),
-                              onPressed: _isAlert?() => _syncTime():null,
-                            ),
-                          ),
-                        ],
-                      )
-                    ),
-                  ],
-                )
-              ),
-
+                            ],
+                          )),
+                    ],
+                  )),
               _label('备注', 60),
               Padding(
                 padding: EdgeInsets.only(left: ScreenUtil().setWidth(24)),
@@ -272,10 +277,9 @@ class _CreatePageState extends State<CreatePage> {
                   width: ScreenUtil().setWidth(710),
                   child: new TextField(
                     controller: _controller2,
-                    decoration:  InputDecoration(
+                    decoration: InputDecoration(
                       border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.transparent)
-                      ),
+                          borderSide: BorderSide(color: Colors.transparent)),
                       contentPadding: EdgeInsets.all(ScreenUtil().setSp(20)),
                     ),
                     minLines: 1,

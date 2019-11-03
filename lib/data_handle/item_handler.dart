@@ -65,7 +65,16 @@ CREATE TABLE $tableItem(
   Future<Item> getItem(int id) async {
     var _db = await db;
     List<Map> result = await _db.query(tableItem,
-        columns: [columnId, columnText, columnTime, columnAlertTime, columnAlert, columnStar, columnCommet, columnColor],
+        columns: [
+          columnId,
+          columnText,
+          columnTime,
+          columnAlertTime,
+          columnAlert,
+          columnStar,
+          columnCommet,
+          columnColor
+        ],
         where: '$columnId = ?',
         whereArgs: [id]);
 
