@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:todo/data_handle/model/item.dart';
 import 'package:todo/page/edit_page.dart';
 
@@ -32,25 +33,27 @@ class _TodoItemState extends State<TodoItem>
   bool _star = false, _alert = false;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-  Animation<double> animation;
-  AnimationController controller;
 
   createNoti() async {
     var scheduledNotificationDateTime = _alertTime;
-    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        '1', '提醒', '在设定的时间提醒您',
-        importance: Importance.Max,
-        priority: Priority.High,
-        ticker: 'to do alert');
-    var iOSPlatformChannelSpecifics = IOSNotificationDetails();
-    var platformChannelSpecifics = NotificationDetails(
-        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.schedule(
-        _id,
-        'TODO提醒：$_text',
-        '备注：${_commet == '' ? '无' : _commet}',
-        scheduledNotificationDateTime,
-        platformChannelSpecifics);
+    if (scheduledNotificationDateTime.isAfter(DateTime.now())) {
+      var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+          '1', '提醒', '在设定的时间提醒您',
+          importance: Importance.Max,
+          priority: Priority.High,
+          ticker: 'to do alert');
+      var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+      var platformChannelSpecifics = NotificationDetails(
+          androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+      await flutterLocalNotificationsPlugin.schedule(
+          _id,
+          'TODO提醒：$_text',
+          '备注：${_commet == '' ? '无' : _commet}',
+          scheduledNotificationDateTime,
+          platformChannelSpecifics);
+    } else {
+      cancelNoti();
+    }
   }
 
   cancelNoti() async {
@@ -81,13 +84,6 @@ class _TodoItemState extends State<TodoItem>
 
     flutterLocalNotificationsPlugin = widget.notificationsPlugin;
     _alert ? createNoti() : cancelNoti();
-
-    controller = new AnimationController(
-        duration: const Duration(milliseconds: 400), vsync: this);
-    CurvedAnimation curvedAnimation =
-        new CurvedAnimation(parent: controller, curve: Curves.easeOut);
-    animation = new Tween(begin: 0.0, end: 1.0).animate(curvedAnimation);
-    controller.forward();
   }
 
   String _timeText(DateTime _t) {
@@ -142,61 +138,60 @@ class _TodoItemState extends State<TodoItem>
     );
   }
 
-  Widget _popupMenuItem(IconData _i, String _s) {
-    return Row(
-      children: <Widget>[
-        Icon(_i),
-        Padding(
-          padding: EdgeInsets.only(left: 30),
-          child: Text('$_s'),
-        )
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    DragDownDetails _pointer;
-    return GestureDetector(
-      child: FadeTransition(
-        opacity: animation,
+    return Slidable(
+      key: widget.key,
+      actionPane: SlidableBehindActionPane(),
+      actionExtentRatio: 0.25,
+      child: Container(
+        padding: EdgeInsets.only(top: 10, bottom: 10),
+        color: Colors.white,
         child: ListTile(
+          leading: Container(
+            padding: EdgeInsets.only(left: 0),
+            width: 5,
+            foregroundDecoration: BoxDecoration(color: _color),
+          ),
           title: Text(
-            '$_text',
-            style: TextStyle(fontSize: ScreenUtil().setSp(34)),
+            _text,
+            style: TextStyle(fontSize: 20),
           ),
           subtitle: Row(
             children: <Widget>[
-              Text('${_timeText(_time)}'),
+              Text(_timeText(_time)),
               Padding(
                 padding: EdgeInsets.only(left: 20),
-                child: _alert
-                    ? Row(
-                        children: <Widget>[
-                          Icon(
-                            Icons.timer,
-                            color: Colors.grey[600],
-                            size: ScreenUtil().setSp(34),
-                          ),
-                          Text('${_timeText(_alertTime)}')
-                        ],
-                      )
-                    : null,
-              )
+              ),
+              _alert
+                  ? Icon(
+                      Icons.timer,
+                      size: 22,
+                      color: Colors.grey[700],
+                    )
+                  : Text(''),
+              _alert
+                  ? Expanded(
+                      child: Text(
+                        _timeText(_alertTime),
+                      ),
+                    )
+                  : Text('')
             ],
           ),
-          leading: Container(
-            width: 6,
-            foregroundDecoration: BoxDecoration(color: _color),
-          ),
           trailing: _star
-              ? Padding(
-                  padding: EdgeInsets.only(right: ScreenUtil().setWidth(25)),
-                  child: Icon(Icons.star),
-                )
-              : null,
-          contentPadding: EdgeInsets.symmetric(
-              vertical: ScreenUtil().setWidth(8), horizontal: 0),
+              ? Icon(Icons.star, size: 24)
+              : Opacity(
+                  opacity: 0,
+                  child: Icon(Icons.star, size: 24),
+                ),
+        ),
+      ),
+      actions: <Widget>[
+        IconSlideAction(
+          caption: 'Detail',
+          color: Colors.blue,
+          icon: Icons.note,
           onTap: () {
             showDialog(
                 context: context,
@@ -272,48 +267,30 @@ class _TodoItemState extends State<TodoItem>
                   );
                 });
           },
-          onLongPress: () {
-            showMenu(
-              context: context,
-              position: RelativeRect.fromLTRB(
-                  _pointer.globalPosition.dx,
-                  _pointer.globalPosition.dy,
-                  _pointer.globalPosition.dx + 20,
-                  _pointer.globalPosition.dy + 20),
-              items: <PopupMenuEntry>[
-                PopupMenuItem(
-                    value: 'star',
-                    child: _star
-                        ? _popupMenuItem(Icons.star, '取消星标')
-                        : _popupMenuItem(Icons.star_border, '设置星标')),
-                PopupMenuDivider(),
-                PopupMenuItem(
-                    value: 'delete',
-                    child: _popupMenuItem(Icons.delete_outline, '删除')),
-              ],
-            ).then((a) {
-              if (a == 'delete') {
-                Future.delayed(Duration(milliseconds: 100),
-                    () => controller.reverse().then((f) => widget.delete(_id)));
-              } else if (a == 'star') {
-                Map<String, dynamic> _m = widget.item.toMap();
-                _m['star'] = _star ? 0 : 1;
-                Item _i = Item.fromMap(_m);
-                widget.update(_i);
-              }
-            });
+        ),
+      ],
+      secondaryActions: <Widget>[
+        IconSlideAction(
+          caption: _star ? 'Cancel Star' : 'Star',
+          color: Colors.yellow,
+          icon: _star ? Icons.star_border : Icons.star,
+          onTap: () {
+            Map<String, dynamic> _m = widget.item.toMap();
+            _m['star'] = _star ? 0 : 1;
+            Item _i = Item.fromMap(_m);
+            widget.update(_i);
           },
         ),
-      ),
-      onPanDown: (DragDownDetails e) {
-        _pointer = e;
-      },
+        IconSlideAction(
+          caption: 'Delete',
+          color: Colors.red,
+          icon: Icons.delete,
+          closeOnTap: false,
+          onTap: () {
+            widget.delete(_id);
+          },
+        ),
+      ],
     );
-  }
-
-  @override
-  dispose() {
-    controller.dispose();
-    super.dispose();
   }
 }

@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:animated_stream_list/animated_stream_list.dart';
 import '../component/todo_item.dart';
 import '../data_handle/item_handler.dart';
 import '../data_handle/model/item.dart';
 import '../page/create_page.dart';
+import '../data_handle/todos_bloc.dart';
 
 class MainPage extends StatefulWidget {
   MainPage({Key key, this.title}) : super(key: key);
@@ -18,9 +22,8 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage>
     with AutomaticKeepAliveClientMixin<MainPage> {
-  List<TodoItem> _todoItemList = [];
-  Map<int, int> _idMap = {};
-  bool _isLoading = true;
+  ItemBloc _itemBloc;
+  bool _isLoading = true, _listIsEmpty = true;
   var _itemHandler = new ItemHandler();
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       new FlutterLocalNotificationsPlugin();
@@ -35,12 +38,16 @@ class _MainPageState extends State<MainPage>
       );
 
   void reloadList() {
+    List<Item> _temp = [];
     _itemHandler.getAll().then((v) {
       v.forEach((_i) {
-        _todoItemList.insert(0, _todoItem(_i));
+        _temp.insert(0, _i);
       });
-      _updateKey();
-      _isLoading = false;
+      _itemBloc.addItem(_temp);
+      _getIsEmpty();
+      setState(() {
+        _isLoading = false;
+      });
     });
   }
 
@@ -55,71 +62,78 @@ class _MainPageState extends State<MainPage>
   }
 
   void _addTODO(Item _i) {
-    Future.delayed(Duration(milliseconds: 250), () {
-      _listViewController
-          .animateTo(0.0,
-              duration: Duration(milliseconds: 300), curve: Curves.ease)
-          .then((v) {
-        _todoItemList.insert(0, _todoItem(_i));
-        _updateKey();
-      });
-    });
+      if (_itemBloc.isEmpty()) {
+        _itemBloc = new ItemBloc();
+        _itemBloc.addItem([_i]);
+        _getIsEmpty();
+      } else {
+        _listViewController
+            .animateTo(0.0,
+                duration: Duration(milliseconds: 300), curve: Curves.ease)
+            .then((v) {
+          _itemBloc.addItem([_i]);
+          _getIsEmpty();
+        });
+      }
   }
 
   void _deleteTODO(int _id) {
-    _itemHandler.delete(_id);
-    _todoItemList.removeAt(_idMap[_id]);
-    _updateKey();
+    _itemHandler.delete(_id).then((v) {
+      _itemBloc.removeItem(_id);
+      Future.delayed(Duration(milliseconds: 750), () => _getIsEmpty());
+    });
   }
 
   void _update(Item _i) {
     Future.delayed(Duration(milliseconds: 200), () {
       _itemHandler.update(_i).then((a) {
         _itemHandler.getItem(_i.id).then((_i) {
-          _todoItemList[_idMap[_i.id]] = _todoItem(_i);
-          _updateKey();
+          _itemBloc.updateItem(_i);
         });
       });
     });
   }
 
-  void _updateKey() {
-    _idMap = {};
-    for (int _i = 0; _i < _todoItemList.length; _i++) {
-      _idMap.putIfAbsent(_todoItemList[_i].id, () => _i);
-    }
-    setState(() {});
-  }
-
-  Future onSelectNotification(String payload) async {
-    if (payload != null) {
-      debugPrint('notification payload: ' + payload);
-    }
-    // await Navigator.push(
-    //   context,
-    //   new MaterialPageRoute(builder: (context) => new SecondScreen(payload)),
-    // );
-  }
-
-  //IOS only
-  Future<void> onDidReceiveLocalNotification(
-      int id, String title, String body, String payload) async {
-    //Sample on https://github.com/MaikuB/flutter_local_notifications
+  void _getIsEmpty() {
+    print('display: ${!_itemBloc.isEmpty()}');
+    setState(() {
+      _listIsEmpty = _itemBloc.isEmpty();
+    });
   }
 
   @override
   void initState() {
     super.initState();
+    _itemBloc = ItemBloc();
     reloadList();
+  }
 
-    var initializationSettingsAndroid =
-        new AndroidInitializationSettings('app_icon');
-    var initializationSettingsIOS = new IOSInitializationSettings(
-        onDidReceiveLocalNotification: onDidReceiveLocalNotification);
-    var initializationSettings = new InitializationSettings(
-        initializationSettingsAndroid, initializationSettingsIOS);
-    flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: onSelectNotification);
+  Widget _animatedView(Stream<List<Item>> todoListStream) {
+    
+    return new AnimatedStreamList<Item>(      
+      streamList: todoListStream, 
+      scrollController: _listViewController,
+      itemBuilder: (Item item, int index, BuildContext context, Animation<double> animation) =>      
+        _createItemWidget(item, index, animation),      
+      itemRemovedBuilder: (Item item, int index, BuildContext context, Animation<double> animation) =>  
+        _createRemovedItemWidget(item, animation), 
+    ); 
+  }
+
+  Widget _createItemWidget(Item item, int index, Animation<double> animation) {
+    return SizeTransition(
+      axis: Axis.vertical,
+      sizeFactor: animation,
+      child: _todoItem(item)
+    );
+  }
+
+  Widget _createRemovedItemWidget(Item item, Animation<double> animation) {
+    return SizeTransition(
+      axis: Axis.vertical,
+      sizeFactor: animation,
+      child: _todoItem(item)
+    );
   }
 
   var tipsStyle = TextStyle(
@@ -133,7 +147,6 @@ class _MainPageState extends State<MainPage>
     ScreenUtil.instance =
         ScreenUtil(width: 750, height: 1334, allowFontScaling: true)
           ..init(context);
-    const Widget _divider = Divider(height: 2);
     DateTime _lastPressedAt;
 
     return Scaffold(
@@ -144,20 +157,8 @@ class _MainPageState extends State<MainPage>
         builder: (context) => WillPopScope(
             child: Center(
                 child: !_isLoading
-                    ? (_todoItemList.isNotEmpty
-                        ? ListView.separated(
-                            controller: _listViewController,
-                            itemCount: _todoItemList == null
-                                ? 0
-                                : _todoItemList.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return _todoItemList[index];
-                            },
-                            separatorBuilder:
-                                (BuildContext context, int index) {
-                              return _divider;
-                            },
-                          )
+                    ? (!_listIsEmpty ? 
+                        _animatedView(_itemBloc.itemListStream)
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
@@ -197,6 +198,7 @@ class _MainPageState extends State<MainPage>
   @override
   void dispose() {
     _listViewController.dispose();
+    _itemBloc.dispose();
     super.dispose();
   }
 
