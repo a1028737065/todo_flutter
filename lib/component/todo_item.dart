@@ -27,10 +27,10 @@ class TodoItem extends StatefulWidget {
 class _TodoItemState extends State<TodoItem>
     with SingleTickerProviderStateMixin {
   int _id;
-  String _text, _commet;
+  String _text, _commet, _alert, _timeText, _alertTimeText;
   DateTime _time, _alertTime;
   Color _color;
-  bool _star = false, _alert = false;
+  bool _star = false;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
@@ -76,17 +76,25 @@ class _TodoItemState extends State<TodoItem>
     _time = DateTime.parse(_data['time']).add(DateTime.now().timeZoneOffset);
     _alertTime =
         DateTime.parse(_data['alert_time']).add(DateTime.now().timeZoneOffset);
-    _alert = _data['alert'] == 1;
+    _alert = _data['alert'];
     _color = Color(
         int.parse(_data['color'].split('(0x')[1].split(')')[0], radix: 16));
     _star = _data['star'] == 1;
     _commet = _data['commet'];
 
+    _timeText = _createTimeText(_time);
+    _alertTimeText = _createAlertTimeText(_alertTime);
+
     flutterLocalNotificationsPlugin = widget.notificationsPlugin;
-    _alert ? createNoti() : cancelNoti();
+    if(_alert != '不提醒') {
+      cancelNoti();
+    }
   }
 
-  String _timeText(DateTime _t) {
+  // String get _timeText => _createTimeText(_time);
+  // String get _alertTimeText => _createAlertTimeText(_alertTime);
+
+  String _createTimeText(DateTime _t) {
     DateTime _nowTime = DateTime.now();
     String _temp = "";
 
@@ -119,6 +127,41 @@ class _TodoItemState extends State<TodoItem>
     _temp +=
         " ${_t.hour.toString().padLeft(2, "0")}:${_t.minute.toString().padLeft(2, "0")}";
     return _temp;
+  }
+
+  String _createAlertTimeText(DateTime _t) {
+    var _temp = _t;
+    if (_alert != '单次' && _alert != '不提醒') {
+      while (_temp.compareTo(DateTime.now()) == -1) {
+        print('$_temp in while');
+        switch (_alert) {
+          case '每日':
+            _temp = _temp.add(Duration(days: 1));
+            break;
+          case '每周':
+            _temp = _temp.add(Duration(days: 7));
+            break;
+          case '每月':
+            _temp = DateTime.parse(
+                '${_temp.year}-${(_temp.month + 1).toString().padLeft(2, "0")}-${_temp.day.toString().padLeft(2, "0")} ${_temp.hour.toString().padLeft(2, "0")}:${_temp.minute.toString().padLeft(2, "0")}:00');
+            break;
+          case '每年':
+            _temp = DateTime.parse(
+                '${_temp.year + 1}-${_temp.month.toString().padLeft(2, "0")}-${_temp.day.toString().padLeft(2, "0")} ${_temp.hour.toString().padLeft(2, "0")}:${_temp.minute.toString().padLeft(2, "0")}:00');
+            break;
+        }
+      }
+      Future.delayed(
+          _temp.difference(DateTime.now()), () => _createAlertTimeText(_temp));
+    }
+
+    _alertTime = _temp;
+    flutterLocalNotificationsPlugin = widget.notificationsPlugin;
+    createNoti();
+
+    return _alert == '单次'
+        ? _createTimeText(_temp)
+        : '${_createTimeText(_temp)}  ($_alert)';
   }
 
   Widget _label(String _t) {
@@ -159,21 +202,21 @@ class _TodoItemState extends State<TodoItem>
           ),
           subtitle: Row(
             children: <Widget>[
-              Text(_timeText(_time)),
+              Text(_timeText),
               Padding(
                 padding: EdgeInsets.only(left: 20),
               ),
-              _alert
+              _alert != '不提醒'
                   ? Icon(
                       Icons.timer,
                       size: 22,
                       color: Colors.grey[700],
                     )
                   : Text(''),
-              _alert
+              _alert != '不提醒'
                   ? Expanded(
                       child: Text(
-                        _timeText(_alertTime),
+                        _alertTimeText,
                       ),
                     )
                   : Text('')
@@ -232,7 +275,7 @@ class _TodoItemState extends State<TodoItem>
                           Row(
                             children: <Widget>[
                               _label('提醒'),
-                              _alert
+                              _alert != '不提醒'
                                   ? Text(
                                       '${_alertTime.year}-${_alertTime.month.toString().padLeft(2, '0')}-${_alertTime.day.toString().padLeft(2, '0')} ${_alertTime.hour.toString().padLeft(2, '0')}:${_alertTime.minute.toString().padLeft(2, '0')}')
                                   : Text('无',

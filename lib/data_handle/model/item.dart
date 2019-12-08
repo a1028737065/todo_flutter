@@ -3,7 +3,7 @@ class Item {
   String text;
   String time;
   String alertTime;
-  bool alert; //Map中该项为true ? 1 : 0
+  String alert;
   bool star;
   String commet;
   String color;
@@ -13,7 +13,7 @@ class Item {
       'text': text,
       'time': time,
       'alert_time': alertTime,
-      'alert': alert == true ? 1 : 0,
+      'alert': alert,
       'star': star == true ? 1 : 0,
       'commet': commet,
       'color': color,
@@ -31,7 +31,7 @@ class Item {
     text = map['text'];
     time = map['time'];
     alertTime = map['alert_time'];
-    alert = map['alert'] == 1;
+    alert = map['alert'];
     star = map['star'] == 1;
     commet = map['commet'];
     color = map['color'];

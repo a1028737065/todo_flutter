@@ -32,7 +32,7 @@ class ItemHandler {
     String databasesPath = await getDatabasesPath();
     String path = join(databasesPath, 'item.db');
 
-    var db = await openDatabase(path, version: 1,
+    var db = await openDatabase(path, version: 2,
         onCreate: (Database db, int newVersion) async {
       await db.execute('''
 CREATE TABLE $tableItem(
@@ -40,7 +40,7 @@ CREATE TABLE $tableItem(
   $columnText TEXT NOT NULL, 
   $columnTime TEXT NOT NULL, 
   $columnAlertTime TEXT NOT NULL, 
-  $columnAlert INTEGER NOT NULL, 
+  $columnAlert TEXT NOT NULL, 
   $columnStar INTEGER NOT NULL, 
   $columnCommet TEXT, 
   $columnColor TEXT NOT NULL)

@@ -15,7 +15,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"></action>
             </intent-filter>
-    </receiver>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

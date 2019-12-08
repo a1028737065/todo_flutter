@@ -20,9 +20,22 @@ class CreatePage extends StatefulWidget {
 class _CreatePageState extends State<CreatePage> {
   TextEditingController _controller1, _controller2;
   DateTime _time, _alertTime;
-  bool _isAlert = false;
-  String _text = '', _commet;
+  String _text = '', _commet, _alertModel = '';
   Color _selectedColor = Color(0xffffffff), _nowColor;
+
+  List<DropdownMenuItem<String>> _alertModelItem() {
+    List<DropdownMenuItem<String>> _temp = [];
+    final List<String> _model = ['不提醒', '单次', '每日', '每周', '每月', '每年'];
+    _model.forEach((v) {
+      _temp.add(DropdownMenuItem(
+        child: Center(
+          child: Text(v),
+        ),
+        value: v,
+      ));
+    });
+    return _temp;
+  }
 
   //TODO:需优化为只传入t
   void _showTimePicker(int i, DateTime t) async {
@@ -60,7 +73,7 @@ class _CreatePageState extends State<CreatePage> {
       'text': _text,
       'time': _timeStr,
       'alert_time': _alertTimeStr,
-      'alert': _isAlert == true ? 1 : 0,
+      'alert': _alertModel == '' ? '不提醒' : _alertModel,      
       'star': 0,
       'commet': _commet == null ? '' : _commet,
       'color': _selectedColor.toString(),
@@ -218,58 +231,108 @@ class _CreatePageState extends State<CreatePage> {
                       }),
                 ],
               ),
-              new Padding(
-                  padding: EdgeInsets.only(
-                    top: ScreenUtil().setHeight(20),
-                    left: ScreenUtil().setHeight(12),
-                  ),
-                  child: new Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              Column(
+                children: <Widget>[
+                  Row(
                     children: <Widget>[
-                      CheckboxListTile(
-                        title: Text('开启提醒'),
-                        value: _isAlert,
-                        activeColor: Colors.blue,
-                        onChanged: (bool value) {
+                      _label('提醒', 10),
+                      DropdownButton(
+                        value: _alertModel == '' ? null : _alertModel,
+                        hint: Text('请选择提醒模式'),
+                        items: _alertModelItem(),
+                        onChanged: (v) {
                           setState(() {
-                            _isAlert = value;
+                            _alertModel = v;
                           });
                         },
                       ),
-                      Container(
-                          width: ScreenUtil().setWidth(750),
-                          child: Row(
-                            children: <Widget>[
-                              Container(
-                                width: ScreenUtil().setWidth(380),
-                                child: OutlineButton(
-                                  child: Text(
-                                      '${_alertTime.year}-${_alertTime.month.toString().padLeft(2, '0')}-${_alertTime.day.toString().padLeft(2, '0')} ${_alertTime.hour.toString().padLeft(2, '0')}:${_alertTime.minute.toString().padLeft(2, '0')}',
-                                      style: TextStyle(
-                                          fontSize: ScreenUtil().setSp(27))),
-                                  onPressed: _isAlert
+                    ],
+                  ),
+                  Container(
+                      width: ScreenUtil().setWidth(750),
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            width: ScreenUtil().setWidth(380),
+                            child: OutlineButton(
+                              child: Text(
+                                  '${_alertTime.year}-${_alertTime.month.toString().padLeft(2, '0')}-${_alertTime.day.toString().padLeft(2, '0')} ${_alertTime.hour.toString().padLeft(2, '0')}:${_alertTime.minute.toString().padLeft(2, '0')}',
+                                  style: TextStyle(
+                                      fontSize: ScreenUtil().setSp(27))),
+                              onPressed:
+                                  _alertModel != '不提醒' && _alertModel != ''
                                       ? () => _showTimePicker(2, _alertTime)
                                       : null,
-                                  borderSide: BorderSide(
-                                      color: Colors.indigo[100], width: 2),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(
-                                    left: ScreenUtil().setWidth(20)),
-                                child: FlatButton.icon(
-                                  icon: Icon(Icons.sync),
-                                  label: Text('设置为事件时间',
-                                      style: TextStyle(
-                                          fontSize: ScreenUtil().setSp(24))),
-                                  onPressed:
-                                      _isAlert ? () => _syncTime() : null,
-                                ),
-                              ),
-                            ],
-                          )),
-                    ],
-                  )),
+                              borderSide: BorderSide(
+                                  color: Colors.indigo[100], width: 2),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(
+                                left: ScreenUtil().setWidth(20)),
+                            child: FlatButton.icon(
+                              icon: Icon(Icons.sync),
+                              label: Text('设置为事件时间',
+                                  style: TextStyle(
+                                      fontSize: ScreenUtil().setSp(24))),
+                              onPressed:
+                                  _alertModel != '不提醒' && _alertModel != ''
+                                      ? () => _syncTime()
+                                      : null,
+                            ),
+                          ),
+                        ],
+                      ))
+                ], 
+
+                // Column(
+                //   crossAxisAlignment: CrossAxisAlignment.start,
+                //   children: <Widget>[
+                //     CheckboxListTile(
+                //       title: Text('开启提醒'),
+                //       value: _isAlert,
+                //       activeColor: Colors.blue,
+                //       onChanged: (bool value) {
+                //         setState(() {
+                //           _isAlert = value;
+                //         });
+                //       },
+                //     ),
+                // Container(
+                //     width: ScreenUtil().setWidth(750),
+                //     child: Row(
+                //       children: <Widget>[
+                //         Container(
+                //           width: ScreenUtil().setWidth(380),
+                //           child: OutlineButton(
+                //             child: Text(
+                //                 '${_alertTime.year}-${_alertTime.month.toString().padLeft(2, '0')}-${_alertTime.day.toString().padLeft(2, '0')} ${_alertTime.hour.toString().padLeft(2, '0')}:${_alertTime.minute.toString().padLeft(2, '0')}',
+                //                 style: TextStyle(
+                //                     fontSize: ScreenUtil().setSp(27))),
+                //             onPressed: _isAlert
+                //                 ? () => _showTimePicker(2, _alertTime)
+                //                 : null,
+                //             borderSide: BorderSide(
+                //                 color: Colors.indigo[100], width: 2),
+                //           ),
+                //         ),
+                //         Padding(
+                //           padding: EdgeInsets.only(
+                //               left: ScreenUtil().setWidth(20)),
+                //           child: FlatButton.icon(
+                //             icon: Icon(Icons.sync),
+                //             label: Text('设置为事件时间',
+                //                 style: TextStyle(
+                //                     fontSize: ScreenUtil().setSp(24))),
+                //             onPressed:
+                //                 _isAlert ? () => _syncTime() : null,
+                //           ),
+                //         ),
+                //       ],
+                //     )),
+                //   ],
+                // )
+              ),
               _label('备注', 60),
               Padding(
                 padding: EdgeInsets.only(left: ScreenUtil().setWidth(24)),

@@ -24,6 +24,7 @@ class _MainPageState extends State<MainPage>
     with AutomaticKeepAliveClientMixin<MainPage> {
   ItemBloc _itemBloc;
   bool _isLoading = true, _listIsEmpty = true;
+
   var _itemHandler = new ItemHandler();
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       new FlutterLocalNotificationsPlugin();
@@ -62,19 +63,19 @@ class _MainPageState extends State<MainPage>
   }
 
   void _addTODO(Item _i) {
-      if (_itemBloc.isEmpty()) {
-        _itemBloc = new ItemBloc();
+    if (_itemBloc.isEmpty()) {
+      _itemBloc = new ItemBloc();
+      _itemBloc.addItem([_i]);
+      _getIsEmpty();
+    } else {
+      _listViewController
+          .animateTo(0.0,
+              duration: Duration(milliseconds: 300), curve: Curves.ease)
+          .then((v) {
         _itemBloc.addItem([_i]);
         _getIsEmpty();
-      } else {
-        _listViewController
-            .animateTo(0.0,
-                duration: Duration(milliseconds: 300), curve: Curves.ease)
-            .then((v) {
-          _itemBloc.addItem([_i]);
-          _getIsEmpty();
-        });
-      }
+      });
+    }
   }
 
   void _deleteTODO(int _id) {
@@ -95,7 +96,6 @@ class _MainPageState extends State<MainPage>
   }
 
   void _getIsEmpty() {
-    print('display: ${!_itemBloc.isEmpty()}');
     setState(() {
       _listIsEmpty = _itemBloc.isEmpty();
     });
@@ -109,31 +109,26 @@ class _MainPageState extends State<MainPage>
   }
 
   Widget _animatedView(Stream<List<Item>> todoListStream) {
-    
-    return new AnimatedStreamList<Item>(      
-      streamList: todoListStream, 
+    return new AnimatedStreamList<Item>(
+      streamList: todoListStream,
       scrollController: _listViewController,
-      itemBuilder: (Item item, int index, BuildContext context, Animation<double> animation) =>      
-        _createItemWidget(item, index, animation),      
-      itemRemovedBuilder: (Item item, int index, BuildContext context, Animation<double> animation) =>  
-        _createRemovedItemWidget(item, animation), 
-    ); 
+      itemBuilder: (Item item, int index, BuildContext context,
+              Animation<double> animation) =>
+          _createItemWidget(item, index, animation),
+      itemRemovedBuilder: (Item item, int index, BuildContext context,
+              Animation<double> animation) =>
+          _createRemovedItemWidget(item, animation),
+    );
   }
 
   Widget _createItemWidget(Item item, int index, Animation<double> animation) {
     return SizeTransition(
-      axis: Axis.vertical,
-      sizeFactor: animation,
-      child: _todoItem(item)
-    );
+        axis: Axis.vertical, sizeFactor: animation, child: _todoItem(item));
   }
 
   Widget _createRemovedItemWidget(Item item, Animation<double> animation) {
     return SizeTransition(
-      axis: Axis.vertical,
-      sizeFactor: animation,
-      child: _todoItem(item)
-    );
+        axis: Axis.vertical, sizeFactor: animation, child: _todoItem(item));
   }
 
   var tipsStyle = TextStyle(
@@ -150,49 +145,50 @@ class _MainPageState extends State<MainPage>
     DateTime _lastPressedAt;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('TODO'),
-      ),
-      body: Builder(
-        builder: (context) => WillPopScope(
-            child: Center(
-                child: !_isLoading
-                    ? (!_listIsEmpty ? 
-                        _animatedView(_itemBloc.itemListStream)
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                '列表里还没有 TODO 哦',
-                                style: tipsStyle,
-                              ),
-                              Text(
-                                '点击右下角的加号来新增一个吧',
-                                style: tipsStyle,
-                              ),
-                            ],
-                          ))
-                    : CircularProgressIndicator()),
-            onWillPop: () async {
-              if (_lastPressedAt == null ||
-                  DateTime.now().difference(_lastPressedAt) >
-                      Duration(milliseconds: 1500)) {
-                _lastPressedAt = DateTime.now();
-                Scaffold.of(context).showSnackBar(SnackBar(
-                  content: Text("再点一次退出！"),
-                  duration: Duration(milliseconds: 1500),
-                ));
-                return false;
-              }
-              return true;
-            }),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _toCreate,
-        tooltip: 'New TODO',
-        child: Icon(Icons.add),
-      ),
-    );
+        appBar: AppBar(
+          title: Text('TODO'),
+        ),
+        body: Builder(
+          builder: (context) => WillPopScope(
+              child: Center(
+                  child: !_isLoading
+                      ? (!_listIsEmpty
+                          ? _animatedView(_itemBloc.itemListStream)
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Text(
+                                  '列表里还没有 TODO 哦',
+                                  style: tipsStyle,
+                                ),
+                                Text(
+                                  '点击右下角的加号来新增一个吧',
+                                  style: tipsStyle,
+                                ),
+                              ],
+                            ))
+                      : CircularProgressIndicator()),
+              onWillPop: () async {
+                if (_lastPressedAt == null ||
+                    DateTime.now().difference(_lastPressedAt) >
+                        Duration(milliseconds: 1500)) {
+                  _lastPressedAt = DateTime.now();
+                  Scaffold.of(context).showSnackBar(SnackBar(
+                    content: Text("再点一次退出！"),
+                    duration: Duration(milliseconds: 1500),
+                  ));
+                  return false;
+                }
+                return true;
+              }),
+        ),
+        floatingActionButton: 
+        FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: _toCreate,
+        )
+        
+        );
   }
 
   @override
